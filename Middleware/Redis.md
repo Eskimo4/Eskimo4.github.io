@@ -130,8 +130,28 @@ ZUNIONSCORE des-key key-count key [key...] | 对一个或多个key执行并集�
 
 ### 6、发布订阅
 
-redis支持发布和订阅功能，不过很少有人用。。
+redis支持发布和订阅功能，PUBLISH、SUBSCRIBE等命令，不过貌似很少有人用。另外再介绍专业的消息中间件，如支持MQTT协议的mosquitto等。
 
 ### 7、其他命令
 
 排序SORT、事务相关（MULTI、EXEC）
+
+命令|描述
+-|-
+SORT src-key [BY pattern] [GET pattern [GET pattern ...]] [ASC\|DESC] [ALPHA] [STORE des-key] | 对列表、集合和有序集合进行排序，返回或存储结果。ALPHA表示根据字符串排序，AEC升序，DESC降序。
+MULTI和EXEC | 创建事务，在MULTI和EXEC之间的命令会按序一起执行
+
+设置过期时间，过期命令只能针对key，即只能为整个键设置过期时间，而不能为键里的单个元素设置。
+
+命令|描述
+-|-
+PERSIST key | 移除键的过期时间
+TTL key | 查看键的过期时间，单位为秒
+EXPIRE key seconds | 设置键在指定时间后过期时间，单位为秒
+EXPIREAT key timestamp |  设置键在给定时间戳时过期，单位为秒
+PTTL key | 查看键的过期时间，单位为毫秒
+PEXPIRE key milliseconds | 设置键在指定时间后过期时间，单位为毫秒
+PEXPIREAT key timestamp |  设置键在给定时间戳时过期，单位为毫秒
+
+
+209
