@@ -5,7 +5,7 @@
 ### 1、字符串
 key和value的形式。
 
-如果value可以被解释为十进制整数或者浮点数，redis会感知到并允许进行INCR和DECR操作。对不存在的或者空的key/value操作会自动创建并设value初始值为0.
+如果value可以被解释为十进制整数或者浮点数，redis会感知到并允许进行INCR和DECR操作。对不存在的或者空的key/value的操作会自动创建并设value初始值为0.
 
 命令 | 描述
 -|-
@@ -24,7 +24,7 @@ GETRANGE key start end | 获取value中[start,end]下标内的子串
 SETRANGE key offset str | 设置value的下标offset后为str
 GETBIT key offset | 获取value的下标offset的二进制位值（将value视为二进制串）
 SETBIT key offset bit | 设置value的下标offset的二进制位为bit（同上）
-BITOP operation dest-key key [key...] | 对一个或多个key进行二进制运算，结果存到dest-key中，包括与、或、异或、非
+BITOP operation dest-key key [key...] | 对一个或多个key进行二进制运算，结果存到dest-key中，operation包括AND、OR、XOR、NOT
 
 ### 2、列表
 key和有序列表[value,value,...]的形式。
@@ -153,5 +153,48 @@ PTTL key | 查看键的过期时间，单位为毫秒
 PEXPIRE key milliseconds | 设置键在指定时间后过期时间，单位为毫秒
 PEXPIREAT key timestamp |  设置键在给定时间戳时过期，单位为毫秒
 
+## 二、持久化和复制
 
-209
+### 1、持久化
+
+redis有两种持久化方式，分别是快照rdb和只追加文件aof。
+
+redis进行快照的时机：
+* BGSAVE命令，非阻塞，redis会fork一个子进程写快照文件
+* SAVE命令，阻塞，redis主进程写快照文件
+* 按照save配置项自动触发BGSAVE
+* SHUTDOWN时，redis执行SAVE
+* 当有从连接到主时，主redis进行一次BGSAVE
+
+
+快照的相关配置：
+
+配置项|描述
+-|-
+save 60 1000 | 在60s内有1000次写入时进行快照
+rdbcompression yes | 对快照文件进行压缩
+dbfilename dump.rdb | 指定快照文件名
+dir ./ | 指定rdb文件和aof文件的存放目录
+
+
+aof相关配置：
+
+配置项|描述
+-|-
+appendonly yes | 开启aof持久化
+appendfsync everysec | 每秒同步一次aof文件，可选择的还有：always（每次写入时同步），no（让系统决定何时同步）
+auto-aof-rewrite-percentage 100 | 当aof文件的大小增长了100%时，进行重写（也可以通过BGREWRITEAOF命令触发重写）
+auto-aof-rewrite-min-size 64mb | 指定aof文件大小的最小值
+
+### 2、复制
+
+redis可以配置一主多从的集群，主可读可写，从只读。主从之间在初次连接时，将主的数据复制到从中，然后主redis后面的每次写命令都同步到从redis。
+
+从redis的配置如下：
+
+配置项|描述
+-|-
+slaveof host port | 设置主的ip地址和端口
+slaveof no one | 取消主
+
+也可以对从redis执行slaveof命令进而达到相同的效果。
